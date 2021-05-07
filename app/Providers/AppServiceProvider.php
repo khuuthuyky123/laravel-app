@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Profile;
+use App\Models\User;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +15,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        User::created(function ($user) {
+            $user->profile()->save(new Profile());
+        });
     }
 
     /**

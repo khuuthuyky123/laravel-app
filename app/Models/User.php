@@ -20,7 +20,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'role_id'
+        'role_id',
+        'avatar'
     ];
 
     /**
@@ -44,8 +45,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function profile()
     {
-        return $this->hasOne(Profile::class);
+        return $this->hasOne(Profile::class,'email','email');
     }
 
-    
+    public function role()
+    {
+        return $this->hasOne(UserRoles::class,'id','role_id');
+    }
 }

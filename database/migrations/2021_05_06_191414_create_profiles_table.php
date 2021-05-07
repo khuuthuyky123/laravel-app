@@ -18,7 +18,7 @@ class CreateProfilesTable extends Migration
             $table->string('email')->unique();
             $table->string('company');
             $table->string('DOB');
-            $table->string('avatar');
+            $table->string('avatar')->default("");
             $table->timestamps();
         });
     }
