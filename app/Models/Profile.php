@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Profile extends Model
 {
     use HasFactory;
+    protected $fillable =[
+        'company',
+        'DOB',
+        'avatar'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
