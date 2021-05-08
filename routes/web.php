@@ -23,5 +23,13 @@ Auth::routes(['verify' => true]);
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::resource('profile',ProfileController::class)->middleware('verified');
-Route::resource('users',UserController::class)->middleware('verified');
+Route::resource('profile', ProfileController::class)->middleware('verified');
+Route::resource('users', UserController::class)->middleware('verified');
+
+Route::post('/userinfo', function () {
+    return response([
+        'name' => Auth::user()->name,
+        'email' => Auth::user()->email,
+        'role_id' => Auth::user()->role_id,
+    ], 200);
+});

@@ -1,9 +1,17 @@
-@extends('layouts.app1')
-@section('content')
-<div class="container"style="margin-top: 20px;">
-    <h2>Section title</h2>
-    <div class="table-responsive">
-        <my-component></my-component>
+<!doctype html>
+<html lang="{{ app()->getLocale() }}">
+
+<head>
+    <title>Laravel</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" type="text/css" href="/css/app.css">
+</head>
+
+<body>
+    <div id="app">
+        <users-page></users-page>
     </div>
-</div>
-@endsection
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

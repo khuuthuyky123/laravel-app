@@ -18,7 +18,7 @@
                             Profile
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" v-if="this.$cookies.get('userinfo')['role_id']=='4'">
                         <a class="nav-link" @click="page = 'user'" href="#">
                             <FileIcon></FileIcon>
                             Users
@@ -41,6 +41,7 @@
     </div>
 </template>
 <script>
+
 import { FileIcon } from "vue-feather-icons";
 import { HomeIcon } from "vue-feather-icons";
 import UsersTable from "./UsersTable.vue";
@@ -52,8 +53,22 @@ export default {
     },
     data() {
         return {
-            page: "profile"
+            page: "profile",
         };
+    },
+    created(){
+        this.getUserAuthed();
+        
+    },
+    methods: {
+        async getUserAuthed() {
+            // it gets the cookie called `username`
+            const res = await axios.post('/userinfo');
+            const data = res.data;
+            console.log(data);
+            
+            this.$cookies.set("userinfo",data,120)
+        }
     }
 };
 </script>

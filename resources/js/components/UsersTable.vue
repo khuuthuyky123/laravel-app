@@ -1,155 +1,260 @@
 <template>
-    <div class="container mt-5">
-        <h2>Users Table</h2>
-        <div class="search-component" >
-            <b-input
-                v-model="searchKey"
-                id="type-search"
-                type="search"
-                style="display: inline-block; width:50%"
-                v-on:update="search()"
-                debounce="300"
-            >
-            </b-input>
-            <button v-b-modal.modalFilter  class="btn"
-                ><filter-icon size="2x" class="filter-icon"></filter-icon>
-            </button>
+    <div id="user-table">
+        <div class="container mt-5" v-if="permission">
+            <h2>Users Table</h2>
+            <div class="search-component">
+                <b-input
+                    v-model="searchKey"
+                    id="type-search"
+                    type="search"
+                    style="display: inline-block; width:50%"
+                    v-on:update="search()"
+                    debounce="300"
+                >
+                </b-input>
+                <button v-b-modal.modalFilter class="btn">
+                    <filter-icon size="2x" class="filter-icon"></filter-icon>
+                </button>
 
-            <b-modal id="modalFilter" hide-backdrop content-class="shadow" title="Filter" hide-footer>
-                <div v-if="show">
-                    <b-form-group label="Roles:">
-                        <b-form-checkbox-group
-                            id="checkbox-group-1"
-                            v-model="filterKey"
-                           v-on:change="search()"
-                        >
-                            <b-form-checkbox value="learner">Learner</b-form-checkbox>
-                            <b-form-checkbox value="author">Author</b-form-checkbox>
-                            <b-form-checkbox value="superuser">Superuser</b-form-checkbox>
-                            <b-form-checkbox value="administrator">Administrator</b-form-checkbox>
-                        </b-form-checkbox-group>
-                    </b-form-group>
-                    <div style="text-align:center;">
-                    
-                    
+                <b-modal
+                    id="modalFilter"
+                    hide-backdrop
+                    content-class="shadow"
+                    title="Filter"
+                    hide-footer
+                >
+                    <div v-if="show">
+                        <b-form-group label="Roles:">
+                            <b-form-checkbox-group
+                                id="checkbox-group-1"
+                                v-model="filterKey"
+                                v-on:change="search()"
+                            >
+                                <b-form-checkbox value="learner"
+                                    >Learner</b-form-checkbox
+                                >
+                                <b-form-checkbox value="author"
+                                    >Author</b-form-checkbox
+                                >
+                                <b-form-checkbox value="superuser"
+                                    >Superuser</b-form-checkbox
+                                >
+                                <b-form-checkbox value="administrator"
+                                    >Administrator</b-form-checkbox
+                                >
+                            </b-form-checkbox-group>
+                        </b-form-group>
+                        <div style="text-align:center;"></div>
                     </div>
-                </div>
-            </b-modal>
+                </b-modal>
+            </div>
+            <table class="table table-hover table-sm ">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th
+                            v-if="sort.name == 'none'"
+                            @click="
+                                sort.name = 'inc';
+                                sort.email = 'none';
+                                search();
+                            "
+                        >
+                            Name
+                        </th>
+                        <th
+                            v-if="sort.name == 'inc'"
+                            @click="
+                                sort.name = 'desc';
+                                sort.email = 'none';
+                                search();
+                            "
+                        >
+                            Name <arrow-up-icon></arrow-up-icon>
+                        </th>
+                        <th
+                            v-if="sort.name == 'desc'"
+                            @click="
+                                sort.name = 'inc';
+                                sort.email = 'none';
+                                search();
+                            "
+                        >
+                            Name <arrow-down-icon></arrow-down-icon>
+                        </th>
+                        <th
+                            v-if="sort.email == 'none'"
+                            @click="
+                                sort.email = 'inc';
+                                sort.name = 'none';
+                                search();
+                            "
+                        >
+                            Email
+                        </th>
+                        <th
+                            v-if="sort.email == 'inc'"
+                            @click="
+                                sort.email = 'desc';
+                                sort.name = 'none';
+                                search();
+                            "
+                        >
+                            Email <arrow-up-icon></arrow-up-icon>
+                        </th>
+                        <th
+                            v-if="sort.email == 'desc'"
+                            @click="
+                                sort.email = 'inc';
+                                sort.name = 'none';
+                                search();
+                            "
+                        >
+                            Email <arrow-down-icon></arrow-down-icon>
+                        </th>
+                        <th>Role</th>
+
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(user, index) in users.data" :key="user.id">
+                        <th scope="row">
+                            {{ 10 * (users.current_page - 1) + index + 1 }}
+                        </th>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role }}</td>
+                        <td>
+                            <button class="btn" @click="editProfile(index)">
+                                <edit-icon
+                                    size="1x"
+                                    class="edit-icon"
+                                ></edit-icon>
+                            </button>
+                            <!-- <button class="btn btn-danger" @click=" = false">Cancel</button> -->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div>{{ users.from }} - {{ users.to }} of {{ users.total }}</div>
+            <ul
+                class="pagination"
+                v-if="this.searchKey == '' && this.filterKey == []"
+            >
+                <li
+                    class="page-item"
+                    :class="{ disabled: users.prev_page_url === null }"
+                    @click="
+                        users.prev_page_url && getUsers(users.current_page - 1)
+                    "
+                >
+                    <a class="page-link" href="#">Previous</a>
+                </li>
+                <li
+                    class="page-item"
+                    v-if="users.prev_page_url"
+                    @click="getUsers(users.current_page - 1)"
+                >
+                    <a class="page-link" href="#">{{
+                        users.current_page - 1
+                    }}</a>
+                </li>
+                <li class="page-item active">
+                    <a class="page-link" href="#">{{ users.current_page }}</a>
+                </li>
+                <li
+                    class="page-item"
+                    v-if="users.next_page_url"
+                    @click="getUsers(users.current_page + 1)"
+                >
+                    <a class="page-link" href="#">{{
+                        users.current_page + 1
+                    }}</a>
+                </li>
+                <li
+                    class="page-item"
+                    :class="{ disabled: users.next_page_url === null }"
+                    @click="
+                        users.next_page_url && getUsers(users.current_page + 1)
+                    "
+                >
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+            <ul class="pagination" v-else>
+                <li
+                    class="page-item"
+                    :class="{ disabled: users.prev_page_url === null }"
+                    @click="
+                        users.prev_page_url && search(users.current_page - 1)
+                    "
+                >
+                    <a class="page-link" href="#">Previous</a>
+                </li>
+                <li
+                    class="page-item"
+                    v-if="users.prev_page_url"
+                    @click="search(users.current_page - 1)"
+                >
+                    <a class="page-link" href="#">{{
+                        users.current_page - 1
+                    }}</a>
+                </li>
+                <li class="page-item active">
+                    <a class="page-link" href="#">{{ users.current_page }}</a>
+                </li>
+                <li
+                    class="page-item"
+                    v-if="users.next_page_url"
+                    @click="search(users.current_page + 1)"
+                >
+                    <a class="page-link" href="#">{{
+                        users.current_page + 1
+                    }}</a>
+                </li>
+                <li
+                    class="page-item"
+                    :class="{ disabled: users.next_page_url === null }"
+                    @click="
+                        users.next_page_url && search(users.current_page + 1)
+                    "
+                >
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
         </div>
-        <table class="table table-hover table-sm ">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(user, index) in users.data" :key="user.id">
-                    <th scope="row">
-                        {{ 10 * (users.current_page - 1) + index + 1 }}
-                    </th>
-                    <td>{{ user.name }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.role }}</td>
-                    <td>
-                        <button class="btn" @click="editProfile(index)">
-                            <edit-icon size="1x" class="edit-icon"></edit-icon>
-                        </button>
-                        <!-- <button class="btn btn-danger" @click=" = false">Cancel</button> -->
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <div>{{ users.from }} - {{ users.to }} of {{ users.total }}</div>
-        <ul class="pagination" v-if="this.searchKey == '' && this.filterKey==[]">
-            <li
-                class="page-item"
-                :class="{ disabled: users.prev_page_url === null }"
-                @click="users.prev_page_url && getUsers(users.current_page - 1)"
-            >
-                <a class="page-link" href="#">Previous</a>
-            </li>
-            <li
-                class="page-item"
-                v-if="users.prev_page_url"
-                @click="getUsers(users.current_page - 1)"
-            >
-                <a class="page-link" href="#">{{ users.current_page - 1 }}</a>
-            </li>
-            <li class="page-item active">
-                <a class="page-link" href="#">{{ users.current_page }}</a>
-            </li>
-            <li
-                class="page-item"
-                v-if="users.next_page_url"
-                @click="getUsers(users.current_page + 1)"
-            >
-                <a class="page-link" href="#">{{ users.current_page + 1 }}</a>
-            </li>
-            <li
-                class="page-item"
-                :class="{ disabled: users.next_page_url === null }"
-                @click="users.next_page_url && getUsers(users.current_page + 1)"
-            >
-                <a class="page-link" href="#">Next</a>
-            </li>
-        </ul>
-        <ul class="pagination" v-else>
-            <li
-                class="page-item"
-                :class="{ disabled: users.prev_page_url === null }"
-                @click="users.prev_page_url && search(users.current_page - 1)"
-            >
-                <a class="page-link" href="#">Previous</a>
-            </li>
-            <li
-                class="page-item"
-                v-if="users.prev_page_url"
-                @click="search(users.current_page - 1)"
-            >
-                <a class="page-link" href="#">{{ users.current_page - 1 }}</a>
-            </li>
-            <li class="page-item active">
-                <a class="page-link" href="#">{{ users.current_page }}</a>
-            </li>
-            <li
-                class="page-item"
-                v-if="users.next_page_url"
-                @click="search(users.current_page + 1)"
-            >
-                <a class="page-link" href="#">{{ users.current_page + 1 }}</a>
-            </li>
-            <li
-                class="page-item"
-                :class="{ disabled: users.next_page_url === null }"
-                @click="users.next_page_url && search(users.current_page + 1)"
-            >
-                <a class="page-link" href="#">Next</a>
-            </li>
-        </ul>
+        <div v-else>
+            <b-jumbotron
+                header="You shouldn't be here. You are not allowed"
+            ></b-jumbotron>
+        </div>
     </div>
 </template>
 
 <script>
 import { EditIcon } from "vue-feather-icons";
 import { FilterIcon } from "vue-feather-icons";
-
+import { ArrowUpIcon } from "vue-feather-icons";
+import { ArrowDownIcon } from "vue-feather-icons";
 export default {
     components: {
         EditIcon,
-        FilterIcon
+        FilterIcon,
+        ArrowUpIcon,
+        ArrowDownIcon
     },
     data() {
         return {
             users: {},
             searchKey: "",
             filterKey: [],
-            error: null,
-
-            show:true,
+            sort: {
+                name: "none",
+                email: "none"
+            },
+            permission: true,
+            show: true
         };
     },
     created() {
@@ -158,13 +263,13 @@ export default {
     methods: {
         async getUsers(page = 1) {
             try {
-                const response = await axios.get(
-                    "/users?page=" + page
-                );
+                const response = await axios.get("/users?page=" + page);
                 this.users = response.data.users;
                 console.log(response);
             } catch (error) {
                 this.error = error.response.data;
+                this.permission = false;
+                console.log(error);
             }
         },
         async editProfile(id) {
@@ -173,16 +278,23 @@ export default {
         },
         async search(page = 1) {
             try {
-                const response = await axios.get(
-                    "/users?searchKey=" + this.searchKey + "&filterKey="+this.filterKey+"&page=" + page
+                console.log(this.sort);
+                const response = await axios.post(
+                    "/users?searchKey=" +
+                        this.searchKey +
+                        "&filterKey=" +
+                        this.filterKey +
+                        "&page=" +
+                        page,
+                    this.sort
                 );
                 console.log(response);
                 this.users = response.data.users;
             } catch (error) {
                 this.error = error.response.data;
+                console.log(error);
             }
-        },
-        
+        }
     }
 };
 </script>
@@ -199,11 +311,11 @@ svg.feather {
 .edit-icon {
     color: green;
 }
-.filer-icon{
+.filer-icon {
     color: black;
     margin-bottom: 5px;
 }
-.search-component{
+.search-component {
     text-align: center;
 }
 </style>

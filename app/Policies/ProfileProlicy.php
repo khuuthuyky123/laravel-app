@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Support\Facades\Log;
 
 class ProfileProlicy
 {
@@ -18,7 +19,10 @@ class ProfileProlicy
      */
     public function viewAny(User $user)
     {
-        //
+        Log::info('user' . $user->id);
+        // Log::info('model' . $model->id);
+        //return (strval($user->role_id)=="4");
+        return true;
     }
 
     /**
@@ -30,7 +34,7 @@ class ProfileProlicy
      */
     public function view(User $user, Profile $profile)
     {
-        //
+        return (strval($user->role_id)=="4" || $user->email==$profile->email);
     }
 
     /**
@@ -41,7 +45,7 @@ class ProfileProlicy
      */
     public function create(User $user)
     {
-        //
+        return (strval($user->role_id)=="4");
     }
 
     /**
@@ -53,7 +57,7 @@ class ProfileProlicy
      */
     public function update(User $user, Profile $profile)
     {
-        //
+        return (strval($user->role_id)=="4" || $user->email==$profile->email);
     }
 
     /**
@@ -65,7 +69,7 @@ class ProfileProlicy
      */
     public function delete(User $user, Profile $profile)
     {
-        //
+        return (strval($user->role_id)=="4");
     }
 
     /**
@@ -77,7 +81,7 @@ class ProfileProlicy
      */
     public function restore(User $user, Profile $profile)
     {
-        //
+        return (strval($user->role_id)=="4");
     }
 
     /**
@@ -89,6 +93,6 @@ class ProfileProlicy
      */
     public function forceDelete(User $user, Profile $profile)
     {
-        //
+        return (strval($user->role_id)=="4");
     }
 }
