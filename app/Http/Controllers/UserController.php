@@ -14,11 +14,18 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         // if (Auth::user()->role_id==4)
         // {
-            $user = DB::table('users')->join('user_roles','users.role_id','=','user_roles.id')->select(['users.name','users.email','user_roles.role']);
+            if (($request->searchKey=="" or !$request->searchKey) and ($request->filterKey==[] or !$request->filterKey))
+                $user = DB::table('users')->join('user_roles','users.role_id','=','user_roles.id')->select(['users.name','users.email','user_roles.role']);
+            else 
+            {
+                $user = DB::table('users')->join('user_roles','users.role_id','=','user_roles.id')->select(['users.name','users.email','user_roles.role'])->where('users.name','like','%'.$request->searchKey.'%');
+                if ($request->filterKey)
+                    $user = $user->whereIn('role',explode(',',$request->filterKey));
+            }
             return response(['users' => $user->paginate(10)],200);
         // }
     }
